@@ -14,6 +14,7 @@ class BattleViewController: UIViewController {
     @IBOutlet var playerImageView: UIImageView!
     @IBOutlet var playerHPLabel: UILabel!
     @IBOutlet var playerMPLabel: UILabel!
+    @IBOutlet var playerTPLabel: UILabel!
     
     @IBOutlet var enemyNameLabel: UILabel!
     @IBOutlet var enemyImageView: UIImageView!
@@ -21,6 +22,9 @@ class BattleViewController: UIViewController {
     @IBOutlet var enemyMPLabel: UILabel!
     
     let techMonManager = TechMonManager.shared
+    
+    var player: Character!
+    var enemy: Character!
     
     var playerHP = 100
     var playerMP = 0
@@ -33,20 +37,37 @@ class BattleViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        player = techMonManager.player
+        enemy = techMonManager.enemy
         playerNameLabel.text = "勇者"
         playerImageView.image = UIImage(named: "yusya.png")
-        playerHPLabel.text = "\(playerHP) / 100"
-        playerMPLabel.text = "\(playerHP) / 20"
-        
         enemyNameLabel.text = "龍"
         enemyImageView.image = UIImage(named: "monster.png")
-        enemyHPLabel.text = "\(enemyHP) / 200"
-        enemyMPLabel.text = "\(enemyMP) / 35"
         
         gameTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(updateGame), userInfo: nil, repeats: true)
         
         gameTimer.fire()
         
+    }
+    
+    func updateUI(){
+        
+        playerHPLabel.text = "\(player.currentHP) / \(player.maxHP)"
+        playerMPLabel.text = "\(player.currentHP) / \(player.maxMP)"
+        playerTPLabel.text = "\(player.currentTP) / \(player.maxTP)"
+        
+        enemyHPLabel.text = "\(enemy.currentHP) / \(enemy.maxHP)"
+        enemyMPLabel.text = "\(enemy.currentMP) / \(enemy.maxMP)"
+    }
+    
+    func judgeBattele(){
+        if player.currentHP <= 0 {
+            
+            finishBattle(vanishImageView: playerImageView, isPlayerWin: false)
+        } else if enemy.currentHP <= 0{
+            
+            finishBattle(vanishImageView: enemyImageView, isPlayerWin: true)
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -125,23 +146,57 @@ class BattleViewController: UIViewController {
         present(alert, animated:  true, completion: nil)
     }
     
-    @IBAction func attackAtion(){
+    @IBAction func attackAction(){
         
         if isPlayerAttackAvailabel {
             
             techMonManager.damageAnimation(imageView: enemyImageView)
             techMonManager.playSE(fileName: "SE_attack")
             
-            enemyHP -= 30
-            playerMP = 0
+            enemy.currentHP -= player.attackPoint
             
-            enemyHPLabel.text = "\(enemyHP) / 200"
-            playerMPLabel.text = "\(playerMP) / 20"
-            
-            if enemyHP <= 0 {
+            player.currentTP += 10
+            if player.currentTP >= player.maxTP{
                 
-                finishBattle(vanishImageView: enemyImageView, isPlayerWin: true)
+                player.currentTP = player.maxTP
             }
+            player.currentMP = 0
+            
+            judgeBattele()
+        }
+    }
+    
+    @IBAction func tameruAction(){
+        
+        if isPlayerAttackAvailabel{
+            
+            techMonManager.playSE(fileName: "SE_charge")
+            player.currentTP += 40
+            if player.currentTP >= player.maxTP{
+                
+                player.currentTP = player.maxTP
+            }
+            player.currentMP = 0
+        }
+    }
+    
+    @IBAction func fireAction(){
+        
+        if isPlayerAttackAvailabel && player.currentTP >= 40{
+            
+            techMonManager.damageAnimation(imageView: enemyImageView)
+            techMonManager.playSE(fileName: "SE_fire")
+            
+            enemy.currentHP -= 100
+            
+            player.currentTP -= 40
+            if player.currentTP <= 0 {
+                
+                player.currentTP = 0
+            }
+            player.currentMP = 0
+            
+            judgeBattele()
         }
     }
     
