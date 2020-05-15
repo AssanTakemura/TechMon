@@ -41,8 +41,14 @@ class BattleViewController: UIViewController {
         enemy = techMonManager.enemy
         playerNameLabel.text = "勇者"
         playerImageView.image = UIImage(named: "yusya.png")
+        playerHPLabel.text = "\(player.currentHP) / \(player.maxHP)"
+        playerMPLabel.text = "\(player.currentHP) / \(player.maxMP)"
+        playerTPLabel.text = "\(player.currentTP) / \(player.maxTP)"
+        
         enemyNameLabel.text = "龍"
         enemyImageView.image = UIImage(named: "monster.png")
+        enemyHPLabel.text = "\(enemy.currentHP) / \(enemy.maxHP)"
+        enemyMPLabel.text = "\(enemy.currentMP) / \(enemy.maxMP)"
         
         gameTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(updateGame), userInfo: nil, repeats: true)
         
@@ -84,25 +90,24 @@ class BattleViewController: UIViewController {
     
     @objc func updateGame(){
         
-        playerMP += 1
-        if playerMP >= 20 {
+        player.currentMP += 1
+        if player.currentMP >= 20 {
             
             isPlayerAttackAvailabel = true
-            playerMP = 20
+            player.currentMP = 20
         } else {
             
             isPlayerAttackAvailabel = false
         }
         
-        enemyMP += 1
-        if enemyMP >= 35{
+        enemy.currentMP += 1
+        if enemy.currentMP >= 35{
             
             enemyAttack()
-            enemyMP = 0
+            enemy.currentMP = 0
         }
         
-        playerMPLabel.text = "\(playerMP) / 20"
-        enemyMPLabel.text = "\(enemyMP) / 35"
+       updateUI()
     }
     
     func enemyAttack(){
@@ -110,11 +115,11 @@ class BattleViewController: UIViewController {
         techMonManager.damageAnimation(imageView: playerImageView)
         techMonManager.playSE(fileName: "SE_attack")
         
-        playerHP -= 20
+        player.currentHP -= 20
         
-        playerHPLabel.text = "\(playerHP) / 100"
+        playerHPLabel.text = "\(player.currentHP) / 100"
         
-        if playerHP <= 0{
+        if player.currentHP <= 0{
             
             finishBattle(vanishImageView: playerImageView, isPlayerWin: false)
         }
